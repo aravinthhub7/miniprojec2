@@ -6,6 +6,9 @@ env:
     REGION: "us-east-1"
     ECR_REPO: "brain-tasks"
     IMAGE_TAG: "latest"
+    CLUSTER_NAME: "brain-tasks-cluster"
+    DEPLOYMENT_NAME: "brain-tasks-deployment"
+    CONTAINER_NAME: "brain-tasks"
 
 phases:
   pre_build:
@@ -22,9 +25,6 @@ phases:
     commands:
       - echo Pushing Docker image to ECR...
       - docker push $REPOSITORY_URI:$IMAGE_TAG
-      - echo Updating Kubernetes Deployment...
-      - aws eks update-kubeconfig --name brain-tasks-cluster --region $REGION
-      - kubectl set image deployment/brain-tasks-deployment brain-tasks=$REPOSITORY_URI:$IMAGE_TAG
-artifacts:
-  files:
-    - '**/*'
+      - echo Updating Kubernetes deployment...
+      - aws eks update-kubeconfig --name $CLUSTER_NAME --region $REGION
+      - kubectl set image deployment/$DEPLOYMENT_NAME $CONTAINER_NAME=$REPOSITORY_URI:$IMAGE_TAG
