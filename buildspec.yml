@@ -24,13 +24,6 @@ phases:
     commands:
       - echo Pushing Docker image...
       - docker push $REPOSITORY_URI:$IMAGE_TAG
-
-      - echo Updating kubeconfig...
-      - aws eks update-kubeconfig --name brain-tasks-cluster --region $REGION
-
       - echo Updating Kubernetes Deployment...
-      # ⚠️ Replace deployment/container names as per your cluster
-      - kubectl set image deployment/brain-tasks-deployment brain-tasks-container=$REPOSITORY_URI:$IMAGE_TAG
-
-      - echo Verifying rollout...
-      - kubectl rollout status deployment/brain-tasks-deployment
+      - aws eks update-kubeconfig --name brain-tasks-cluster --region $REGION
+      - kubectl set image deployment/brain-tasks-deployment brain-tasks=$REPOSITORY_URI:$IMAGE_TAG
