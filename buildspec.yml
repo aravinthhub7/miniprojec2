@@ -13,15 +13,24 @@ phases:
       - echo Logging in to Amazon ECR...
       - export REPOSITORY_URI=$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$ECR_REPO
       - aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
+
   build:
     commands:
       - echo Building Docker image...
       - docker build -t $ECR_REPO .
       - docker tag $ECR_REPO:$IMAGE_TAG $REPOSITORY_URI:$IMAGE_TAG
+
   post_build:
     commands:
       - echo Pushing Docker image...
       - docker push $REPOSITORY_URI:$IMAGE_TAG
-      - echo Updating Kubernetes Deployment...
+
+      - echo Updating kubeconfig...
       - aws eks update-kubeconfig --name brain-tasks-cluster --region $REGION
-      - kubectl set image deployment/brain-tasks-deployment brain-tasks=$REPOSITORY_URI:$IMAGE_TAG
+
+      - echo Updating Kubernetes Deployment...
+      # ⚠️ Replace deployment/container names as per your cluster
+      - kubectl set image deployment/brain-tasks-deployment brain-tasks-container=$REPOSITORY_URI:$IMAGE_TAG
+
+      - echo Verifying rollout...
+      - kubectl rollout status deployment/brain-tasks-deployment
